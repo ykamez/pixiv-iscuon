@@ -142,7 +142,11 @@ module Isuconp
             comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
           end
           post[:comments] = comments.reverse
-          post[:user] = users.find{|u| u[:id] = post[:user_id] }
+          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+            post[:user_id]
+          ).first
+          # post[:user] = users.find{|u| u[:id] = post[:user_id] }
+          puts post[:user]
           posts.push(post) if post[:user][:del_flg] == 0
           break if posts.length >= POSTS_PER_PAGE
         end
