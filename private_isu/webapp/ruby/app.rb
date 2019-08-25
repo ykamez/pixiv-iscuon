@@ -357,7 +357,7 @@ module Isuconp
 
     def store_image(post_id, imgdata, ext)
       # dirがなかったら作る
-      file_path = "./../public/images"
+      file_path = "./../public/image"
       FileUtils.mkdir_p(file_path) unless FileTest.exist?(file_path)
       # 画像を保存する
       File.open("#{file_path}/#{post_id}.#{ext}", "w") do |f|
