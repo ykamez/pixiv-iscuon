@@ -111,13 +111,10 @@ module Isuconp
           comments = db.prepare(query).execute(
             post[:id]
           ).to_a
-          users = db.prepare('SELECT * FROM `users` WHERE `id` IN (?)').execute(comments.map{|row| row[:user_id]})
-          users_hash = {}
-          users.each do |user|
-            users_hash[user[:id]] = users
-          end
           comments.each do |comment|
-            comment[:user] = users_hash[comment[:user_id]]
+            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+              comment[:user_id]
+            ).first
           end
           post[:comments] = comments.reverse
 
