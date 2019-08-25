@@ -103,6 +103,8 @@ module Isuconp
         post_ids = result_array.pluck(:id)
         user_ids = result_array.pluck(:user_id)
         comments = db.prepare('SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC').execute(post_ids.map(&:to_i)).to_a
+        user_ids += comments.pluck(:user_id)
+        users = db.prepare('SELECT * FROM `users` WHERE `id` IN (?)').execute(user_ids).to_a
         result_array.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] == post[:id] }
           post[:comment_count] = post_comments.count
@@ -110,16 +112,10 @@ module Isuconp
             post_comments = post_comments.take(3)
           end
           comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
+            comment[:user] = users.find{|user| user[:id] == comment[:user_id] }
           end
           post[:comments] = post_comments.reverse
-
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
-
+          post[:user] = users.find{|user| user[:id] == post[:user_id] }
           posts.push(post) if post[:user][:del_flg] == 0
           break if posts.length >= POSTS_PER_PAGE
         end
