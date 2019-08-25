@@ -134,17 +134,13 @@ module Isuconp
         user_ids = comments.map{|c| c[:user_id]}
         user_ids += results.to_a.map{|c| c[:user_id]}
         users = db.prepare(query).execute(user_ids.map(&:to_i)).to_a
-        put users
         results.to_a.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] = post[:id] }
           post[:comment_count] = post_comments.count
           comments = comments.take(3)
 
           comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
-            # comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
+            comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
           end
           post[:comments] = comments.reverse
           post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
