@@ -128,10 +128,10 @@ module Isuconp
 
       def make_posts(results)
         posts = []
+        query = 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC LIMIT 3'
+        comments = db.prepare(query).execute(results.to_a.map(&:id)).to_a
         results.to_a.each do |post|
-          post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
-            post[:id]
-          ).first[:count]
+          post[:comment_count] = comments.select{|comment| comment[:post_id] = post[:id] }.count
 
           query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT 3'
           comments = db.prepare(query).execute(
