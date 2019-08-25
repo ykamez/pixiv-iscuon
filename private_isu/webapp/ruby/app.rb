@@ -97,7 +97,7 @@ module Isuconp
         end
       end
 
-      def make_posts(results, all_comments: false)
+      def make_post_all_comments(results)
         posts = []
         results.to_a.each do |post|
           post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
@@ -105,9 +105,6 @@ module Isuconp
           ).first[:count]
 
           query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
-          unless all_comments
-            query += ' LIMIT 3'
-          end
           comments = db.prepare(query).execute(
             post[:id]
           ).to_a
@@ -122,6 +119,34 @@ module Isuconp
             post[:user_id]
           ).first
 
+          posts.push(post) if post[:user][:del_flg] == 0
+          break if posts.length >= POSTS_PER_PAGE
+        end
+
+        posts
+      end
+
+      def make_posts(results)
+        posts = []
+        query = 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC LIMIT 3'
+        comments = db.prepare(query).execute(results.to_a.map{|p| p[:id]}.map(&:to_i)).to_a
+        results.to_a.each do |post|
+          post_comments = comments.select{|comment| comment[:post_id] = post[:id] }
+          post[:comment_count] = post_comments.count
+          comments = comments.take(3)
+
+          comments.each do |comment|
+            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+              comment[:user_id]
+            ).first
+            # comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
+          end
+          post[:comments] = comments.reverse
+          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+            post[:user_id]
+          ).first
+          # post[:user] = users.find{|u| u[:id] = post[:user_id] }
+          puts post[:user]
           posts.push(post) if post[:user][:del_flg] == 0
           break if posts.length >= POSTS_PER_PAGE
         end
@@ -277,7 +302,7 @@ module Isuconp
       results = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(
         params[:id]
       )
-      posts = make_posts(results, all_comments: true)
+      posts = make_post_all_comments(results)
 
       return 404 if posts.length == 0
 
