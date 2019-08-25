@@ -129,7 +129,12 @@ module Isuconp
       def make_posts(results)
         posts = []
         query = 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC LIMIT 3'
+        query = 'SELECT * FROM `users` WHERE `id` IN (?)'
         comments = db.prepare(query).execute(results.to_a.map{|p| p[:id]}.map(&:to_i)).to_a
+        user_ids = comments.map{|c| c[:user_id]}
+        user_ids += results.to_a.map{|c| c[:user_id]}
+        users = db.prepare(query).execute(user_ids.map(&:to_i)).to_a
+        put users
         results.to_a.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] = post[:id] }
           post[:comment_count] = post_comments.count
