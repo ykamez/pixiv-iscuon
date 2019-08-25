@@ -100,8 +100,8 @@ module Isuconp
       def make_posts(results, all_comments: false)
         result_array = results.to_a.take(POSTS_PER_PAGE)
         posts = []
-        post_ids = result_array.map(&:id)
-        user_ids = result_array.map(&:user_id)
+        post_ids = result_array.map{|row| row[:id] }
+        user_ids = result_array.map{|row| row[:user_id] }
         comments = db.prepare('SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC').execute(post_ids.map(&:to_i)).to_a
         user_ids += comments.map(&:user_id)
         users = db.prepare('SELECT * FROM `users` WHERE `id` IN (?)').execute(user_ids.map(&:to_i)).to_a
