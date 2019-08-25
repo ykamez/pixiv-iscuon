@@ -97,7 +97,7 @@ module Isuconp
         end
       end
 
-      def make_all_posts(results)
+      def make_post_all_comments(results)
         posts = []
         results.to_a.each do |post|
           post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
@@ -303,7 +303,7 @@ module Isuconp
       results = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(
         params[:id]
       )
-      posts = make_all_posts(results)
+      posts = make_post_all_comments(results)
 
       return 404 if posts.length == 0
 
