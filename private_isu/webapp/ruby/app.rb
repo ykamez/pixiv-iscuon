@@ -98,25 +98,23 @@ module Isuconp
       end
 
       def make_posts(results, all_comments: false)
+        result_array = results.to_a.take(POSTS_PER_PAGE)
         posts = []
-        results.to_a.each do |post|
-          post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
-            post[:id]
-          ).first[:count]
-
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
+        post_ids = result_array.pluck(:id)
+        user_ids = result_array.pluck(:user_id)
+        comments = db.prepare('SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC').execute(post_ids.map(&:to_i)).to_a
+        result_array.each do |post|
+          post_comments = comments.select{|comment| comment[:post_id] == post[:id] }
+          post[:comment_count] = post_comments.count
           unless all_comments
-            query += ' LIMIT 3'
+            post_comments = post_comments.take(3)
           end
-          comments = db.prepare(query).execute(
-            post[:id]
-          ).to_a
           comments.each do |comment|
             comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
               comment[:user_id]
             ).first
           end
-          post[:comments] = comments.reverse
+          post[:comments] = post_comments.reverse
 
           post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
             post[:user_id]
