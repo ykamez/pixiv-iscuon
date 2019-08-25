@@ -130,6 +130,11 @@ module Isuconp
         posts = []
         query = 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC LIMIT 3'
         comments = db.prepare(query).execute(results.to_a.map{|p| p[:id]}.map(&:to_i)).to_a
+        user_query ='SELECT * FROM `users` WHERE `id` = ?'
+        user_ids = posts.to_a.map{|p|p[:user_id]}
+        user_ids += comments.to_a.map{|p|p[:user_id]}
+        users = db.prepare(user_query).execute(user_ids.map(&:to_i))
+        puts "user_count: #{users.count}"
         results.to_a.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] = post[:id] }
           post[:comment_count] = post_comments.count
