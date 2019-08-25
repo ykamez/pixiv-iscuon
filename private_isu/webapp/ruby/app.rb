@@ -342,10 +342,9 @@ module Isuconp
         return ""
       end
 
-      session[:images] ||= {}
-      unless (post = session[:images][params[:id].to_sym])
-        post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
-        session[:images][params[:id].to_sym] = post
+      unless (post = session["image_#{params[:id]}".to_sym])
+        post = db.prepare('SELECT imgdata FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
+        session["image_#{params[:id]}".to_sym] = post
       end
 
       if (params[:ext] == "jpg" && post[:mime] == "image/jpeg") ||
