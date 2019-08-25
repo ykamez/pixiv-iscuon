@@ -130,28 +130,22 @@ module Isuconp
         posts = []
         query = 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC LIMIT 3'
         comments = db.prepare(query).execute(results.to_a.map{|p| p[:id]}.map(&:to_i)).to_a
-        user_query ='SELECT * FROM `users` WHERE `id` = ?'
-        user_ids = posts.to_a.map{|p|p[:user_id]}
-        user_ids += comments.to_a.map{|p|p[:user_id]}
-        users = db.prepare(user_query).execute(user_ids.map(&:to_i))
-        puts "user_count: #{users.count}"
+        user_ids = results.to_a.map{|p|p[:user_id]}
+	user_ids += comments.map{|p|p[:user_id]}
+	placeholder = (['?'] * user_ids.length).join(",")
+        user_query = "SELECT * FROM `users` WHERE id IN (#{placeholder})"
+        users = db.prepare(user_query).execute(*user_ids).to_a
         results.to_a.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] = post[:id] }
           post[:comment_count] = post_comments.count
           comments = comments.take(3)
+          puts "users: #{users}"
 
           comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
-            # comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
+            comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
           end
           post[:comments] = comments.reverse
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
-          # post[:user] = users.find{|u| u[:id] = post[:user_id] }
-          puts post[:user]
+          post[:user] = users.find{|u| u[:id] = post[:user_id] }
           posts.push(post) if post[:user][:del_flg] == 0
           break if posts.length >= POSTS_PER_PAGE
         end
