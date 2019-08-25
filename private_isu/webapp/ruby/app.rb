@@ -265,7 +265,7 @@ module Isuconp
 
     get '/posts' do
       max_created_at = params['max_created_at']
-      results = db.prepare('SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `created_at` <= ? ORDER BY `created_at` DESC').execute(
+      results = db.prepare('SELECT posts.id as id, posts.user_id as user_id, posts.body as body, posts.created_at as created_at, posts.mime as mime FROM `posts` JOIN `users` ON posts.user_id = users.id WHERE users.del_flg = 0 AND posts.created_at <= ? ORDER BY posts.created_at DESC LIMIT 20').execute(
         max_created_at.nil? ? nil : Time.iso8601(max_created_at).localtime
       )
       posts = make_posts(results)
