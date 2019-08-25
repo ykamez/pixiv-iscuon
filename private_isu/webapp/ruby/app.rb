@@ -238,9 +238,7 @@ module Isuconp
         return 404
       end
 
-      results = db.prepare('SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC').execute(
-        user[:id]
-      )
+      results = db.prepare('SELECT posts.id as id, posts.user_id as user_id, posts.body as body, posts.created_at as created_at, posts.mime as mime FROM `posts` JOIN `users` ON posts.user_id = users.id WHERE users.del_flg = 0 AND posts.user_id = ? ORDER BY posts.created_at DESC LIMIT 20').execute(user[:id])
       posts = make_posts(results)
 
       comment_count = db.prepare('SELECT COUNT(*) AS count FROM `comments` WHERE `user_id` = ?').execute(
