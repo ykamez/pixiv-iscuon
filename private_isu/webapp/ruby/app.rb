@@ -139,7 +139,10 @@ module Isuconp
           comments = comments.take(3)
 
           comments.each do |comment|
-            comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
+            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+              comment[:user_id]
+            ).first
+            # comment[:user] = users.find{|u| u[:id] = comment[:user_id] }
           end
           post[:comments] = comments.reverse
           post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
