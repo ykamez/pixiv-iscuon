@@ -348,7 +348,7 @@ module Isuconp
           (params[:ext] == "png" && post[:mime] == "image/png") ||
           (params[:ext] == "gif" && post[:mime] == "image/gif")
         headers['Content-Type'] = post[:mime]
-        store_image(params[:id], post[:imgdata], post['ext'])
+        store_image(params[:id], post[:imgdata], params[:ext])
         return post[:imgdata]
       end
 
@@ -360,7 +360,7 @@ module Isuconp
       file_path = "./../public/images"
       FileUtils.mkdir_p(file_path) unless FileTest.exist?(file_path)
       # 画像を保存する
-      File.open("#{post_id}.#{ext}", "w") do |f|
+      File.open("#{file_path}/#{post_id}.#{ext}", "w") do |f|
         f.write(imgdata)
       end
     end
