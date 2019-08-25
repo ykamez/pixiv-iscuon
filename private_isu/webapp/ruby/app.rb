@@ -342,7 +342,7 @@ module Isuconp
         return ""
       end
 
-      post = db.prepare('SELECT imgdata FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
+      post = db.prepare('SELECT imgdata, mime FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
 
       if (params[:ext] == "jpg" && post[:mime] == "image/jpeg") ||
           (params[:ext] == "png" && post[:mime] == "image/png") ||
