@@ -104,7 +104,7 @@ module Isuconp
         user_ids = result_array.pluck(:user_id)
         comments = db.prepare('SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `created_at` DESC').execute(post_ids.map(&:to_i)).to_a
         user_ids += comments.pluck(:user_id)
-        users = db.prepare('SELECT * FROM `users` WHERE `id` IN (?)').execute(user_ids).to_a
+        users = db.prepare('SELECT * FROM `users` WHERE `id` IN (?)').execute(user_ids.map(&:to_i)).to_a
         result_array.each do |post|
           post_comments = comments.select{|comment| comment[:post_id] == post[:id] }
           post[:comment_count] = post_comments.count
