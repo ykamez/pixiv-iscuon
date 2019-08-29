@@ -120,7 +120,7 @@ module Isuconp
             comments c
             left outer join users u on comments.user_id = users.id
           where
-            post_id = #{post.id}
+            post_id = #{post[:id]}
             #{"limit 3" unless all_comments}
           SQL
           comments = db.query(sql)
