@@ -123,7 +123,7 @@ module Isuconp
             post_id = #{post[:id]}
             #{"limit 3" unless all_comments}
           SQL
-          comments = db.query(sql)
+          comments = db.query(sql).to_a
 
           comments.each do |comment|
             comment[:user] = {
