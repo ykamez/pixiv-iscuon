@@ -118,7 +118,7 @@ module Isuconp
             u.created_at as u_created_at
           from
             comments c
-            left outer join users u on comments.user_id = users.id
+            left outer join users u on c.user_id = u.id
           where
             post_id = #{post[:id]}
             #{"limit 3" unless all_comments}
