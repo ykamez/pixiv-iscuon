@@ -319,13 +319,17 @@ module Isuconp
 
       if params['file']
         mime = ''
+        ext = ''
         # 投稿のContent-Typeからファイルのタイプを決定する
         if params["file"][:type].include? "jpeg"
           mime = "image/jpeg"
+          ext = 'jpg'
         elsif params["file"][:type].include? "png"
           mime = "image/png"
+          ext = 'png'
         elsif params["file"][:type].include? "gif"
           mime = "image/gif"
+          ext = 'gif'
         else
           flash[:notice] = '投稿できる画像形式はjpgとpngとgifだけです'
           redirect '/', 302
@@ -337,14 +341,14 @@ module Isuconp
         end
 
         params['file'][:tempfile].rewind
-        query = 'INSERT INTO `posts` (`user_id`, `mime`, `imgdata`, `body`) VALUES (?,?,?,?)'
+        query = 'INSERT INTO `posts` (`user_id`, `mime`, `body`) VALUES (?,?,?)'
         db.prepare(query).execute(
           me[:id],
           mime,
-          params["file"][:tempfile].read,
           params["body"],
         )
         pid = db.last_id
+        store_image(pid, params["file"][:tempfile].read, ext)
 
         redirect "/posts/#{pid}", 302
       else
